@@ -80,5 +80,9 @@ private:
 
 	double lastPacketReceivedTime = 0.0f; // NOTE(jesus): Use this to implement client timeout
 	float secondsSinceLastPing = 0.0f;    // NOTE(jesus): Use this to implement ping to server
+
+	//ReplicationManager
+	ReplicationManagerClient replicationManager;
+
 };
 
