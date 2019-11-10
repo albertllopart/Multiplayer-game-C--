@@ -200,7 +200,41 @@ void ModuleNetworkingServer::onUpdate()
 
 				// TODO(jesus): If the replication interval passed and the replication manager of this proxy
 				//              has pending data, write and send a replication packet to this client.
+
+				//if (replicationIntervalTimer > replicationDeliveryIntervalSeconds && //replication manager té data?)
+
+				//Disconnect for inactivity
+				if (Time.time - clientProxy.lastPacketReceivedTime > DISCONNECT_TIMEOUT_SECONDS)
+				{
+					destroyClientProxy(&clientProxy);
+				}
+
+				//Ping message to clients
+				if (secondsSinceLastPing > PING_INTERVAL_SECONDS)
+				{
+					OutputMemoryStream packet; 
+					packet << ServerMessage::Ping;
+				}
 			}
+		}
+
+		//update timers
+		if (secondsSinceLastPing > PING_INTERVAL_SECONDS)
+		{
+			secondsSinceLastPing = 0.0f;
+		}
+		else
+		{
+			secondsSinceLastPing += Time.deltaTime;
+		}
+
+		if (replicationIntervalTimer > replicationDeliveryIntervalSeconds)
+		{
+			replicationIntervalTimer = 0.0f;
+		}
+		else
+		{
+			replicationIntervalTimer += Time.deltaTime;
 		}
 	}
 }
