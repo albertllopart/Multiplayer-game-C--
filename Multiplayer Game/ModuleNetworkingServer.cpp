@@ -206,8 +206,11 @@ void ModuleNetworkingServer::onUpdate()
 					OutputMemoryStream packet;
 					packet << ServerMessage::Replication;
 
+					clientProxy.replicationManager.Write(packet);
+
+					packet << clientProxy.nextExpectedInputSequenceNumber;
+
 					sendPacket(packet, clientProxy.address);
-					//TODO: crear replication manager (que no sé què és encara) al client i escriure la replication no sé amb què
 				}
 
 				//Disconnect for inactivity
@@ -377,6 +380,7 @@ GameObject * ModuleNetworkingServer::spawnPlayer(ClientProxy &clientProxy, uint8
 		if (clientProxies[i].connected)
 		{
 			// TODO(jesus): Notify this proxy's replication manager about the creation of this game object
+			clientProxies[i].replicationManager.Create(clientProxy.gameObject->networkId);
 		}
 	}
 
@@ -406,6 +410,7 @@ GameObject * ModuleNetworkingServer::spawnBullet(GameObject *parent)
 		if (clientProxies[i].connected)
 		{
 			// TODO(jesus): Notify this proxy's replication manager about the creation of this game object
+			clientProxies[i].replicationManager.Create(gameObject->networkId);
 		}
 	}
 
@@ -425,6 +430,7 @@ void ModuleNetworkingServer::destroyNetworkObject(GameObject * gameObject)
 		if (clientProxies[i].connected)
 		{
 			// TODO(jesus): Notify this proxy's replication manager about the destruction of this game object
+			clientProxies[i].replicationManager.Destroy(gameObject->networkId);
 		}
 	}
 
@@ -443,6 +449,7 @@ void ModuleNetworkingServer::updateNetworkObject(GameObject * gameObject)
 		if (clientProxies[i].connected)
 		{
 			// TODO(jesus): Notify this proxy's replication manager about the update of this game object
+			clientProxies[i].replicationManager.Update(gameObject->networkId);
 		}
 	}
 }
