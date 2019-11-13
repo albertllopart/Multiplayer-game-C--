@@ -138,6 +138,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 					GameObject *gameObject = networkGameObjects[i];
 
 					// TODO(jesus): Notify the new client proxy's replication manager about the creation of this game object
+					proxy->replicationManager.Create(gameObject->networkId);
 				}
 
 				LOG("Message received: hello - from player %s", playerName.c_str());
@@ -264,6 +265,7 @@ void ModuleNetworkingServer::onConnectionReset(const sockaddr_in & fromAddress)
 			if (clientProxies[i].connected && proxy->clientId != clientProxies[i].clientId)
 			{
 				// TODO(jesus): Notify this proxy's replication manager about the destruction of this player's game object
+				clientProxies[i].replicationManager.Destroy(proxy->gameObject->networkId);
 			}
 		}
 

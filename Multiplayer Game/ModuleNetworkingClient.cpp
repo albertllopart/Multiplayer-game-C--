@@ -131,6 +131,7 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 		if (message == ServerMessage::Replication)
 		{
 			replicationManager.Read(packet);
+			packet >> inputDataFront;
 		}
 	}
 }
