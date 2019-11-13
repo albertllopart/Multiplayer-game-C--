@@ -190,6 +190,23 @@ void ModuleNetworkingClient::onUpdate()
 
 				sendPacket(packet, serverAddress);
 			}
+
+			//Disconnect for inactivity
+			if (Time.time - lastPacketReceivedTime > DISCONNECT_TIMEOUT_SECONDS)
+			{
+				disconnect();
+			}
+
+			//Ping message to clients
+			if (secondsSinceLastPing > PING_INTERVAL_SECONDS)
+			{
+				OutputMemoryStream packet;
+				packet << ServerMessage::Ping;
+
+				sendPacket(packet, serverAddress);
+
+				secondsSinceLastPing = 0;
+			}
 		}
 	}
 
