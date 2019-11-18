@@ -138,7 +138,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 					GameObject *gameObject = networkGameObjects[i];
 
 					// TODO(jesus): Notify the new client proxy's replication manager about the creation of this game object
-					proxy->replicationManager.Create(gameObject->networkId);
+					//proxy->replicationManager.Create(gameObject->networkId);
 				}
 
 				LOG("Message received: hello - from player %s", playerName.c_str());
