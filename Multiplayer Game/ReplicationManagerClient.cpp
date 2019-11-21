@@ -14,29 +14,37 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 		{
 			case ReplicationAction::Create:
 			{
+				vec2 position;
+				float angle;
+				vec4 color;
+
+				packet >> position.x;
+				packet >> position.y;
+
+				packet >> angle;
+
+				packet >> color.r;
+				packet >> color.g;
+				packet >> color.b;
+				packet >> color.a;
+
 				GameObject* newGO = Instantiate();
 
 				if (newGO)
 				{
-					packet >> newGO->position.x;
-					packet >> newGO->position.y;
+					packet >> newGO->position;
 
 					packet >> newGO->angle;
 
-					packet >> newGO->order;
+					//packet >> newGO->order;
 
-					packet >> newGO->pivot.x;
-					packet >> newGO->pivot.y;
+					//packet >> newGO->pivot.x;
+					//packet >> newGO->pivot.y;
 
-					packet >> newGO->size.x;
-					packet >> newGO->size.y;
+					//packet >> newGO->size.x;
+					//packet >> newGO->size.y;
 
-					packet >> newGO->color.r;
-					packet >> newGO->color.g;
-					packet >> newGO->color.b;
-					packet >> newGO->color.a;
-
-					packet >> newGO->tag;
+					packet >> newGO->color;
 
 					App->modLinkingContext->registerNetworkGameObjectWithNetworkId(newGO, networkId);
 				}
@@ -45,12 +53,12 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 
 			case ReplicationAction::Destroy:
 			{
-				GameObject* gameObject = App->modLinkingContext->getNetworkGameObject(networkId);
+				GameObject* GO = App->modLinkingContext->getNetworkGameObject(networkId);
 
-				if (gameObject)
+				if (GO)
 				{
-					App->modLinkingContext->unregisterNetworkGameObject(gameObject);
-					Destroy(gameObject);
+					App->modLinkingContext->unregisterNetworkGameObject(GO);
+					Destroy(GO);
 				}
 
 				break;
@@ -63,14 +71,27 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 
 			case ReplicationAction::Update:
 			{
-				GameObject* gameObject = App->modLinkingContext->getNetworkGameObject(networkId);
+				vec2 position;
+				float angle;
+				vec4 color;
 
-				if (gameObject)
+				packet >> position.x;
+				packet >> position.y;
+
+				packet >> angle;
+
+				packet >> color.r;
+				packet >> color.g;
+				packet >> color.b;
+				packet >> color.a;
+
+				GameObject* GO = App->modLinkingContext->getNetworkGameObject(networkId);
+
+				if (GO)
 				{
-					packet >> gameObject->position.x;
-					packet >> gameObject->position.y;
-
-					packet >> gameObject->angle;
+					packet >> GO->position;
+					packet >> GO->angle;
+					packet >> GO->color;
 				}
 				break;
 			}
