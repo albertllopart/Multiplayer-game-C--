@@ -354,12 +354,15 @@ GameObject * ModuleNetworkingServer::spawnPlayer(ClientProxy &clientProxy, uint8
 
 	if (spaceshipType == 0) {
 		clientProxy.gameObject->texture = App->modResources->spacecraft1;
+		clientProxy.gameObject->textureType = TEX_1;
 	}
 	else if (spaceshipType == 1) {
 		clientProxy.gameObject->texture = App->modResources->spacecraft2;
+		clientProxy.gameObject->textureType = TEX_2;
 	}
 	else {
 		clientProxy.gameObject->texture = App->modResources->spacecraft3;
+		clientProxy.gameObject->textureType = TEX_3;
 	}
 
 	// Create collider
@@ -394,6 +397,7 @@ GameObject * ModuleNetworkingServer::spawnBullet(GameObject *parent)
 	gameObject->angle = parent->angle;
 	gameObject->position = parent->position;
 	gameObject->texture = App->modResources->laser;
+	gameObject->textureType = TEX_LASER;
 	gameObject->collider = App->modCollision->addCollider(ColliderType::Laser, gameObject);
 
 	// Create behaviour
