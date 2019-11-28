@@ -1,5 +1,13 @@
 #pragma once
 
+//texture
+enum TextureType {
+	TEX_1,
+	TEX_2,
+	TEX_3,
+	TEX_LASER
+};
+
 struct GameObject
 {
 	// Transform component
@@ -10,6 +18,7 @@ struct GameObject
 	vec2 size = vec2{ 0.0f, 0.0f }; // NOTE(jesus): If equals 0, it takes the size of the texture
 	float angle = 0.0f;
 	vec4 color = vec4{ 1.0f, 1.0f, 1.0f, 1.0f }; // NOTE(jesus): The texture will tinted with this color
+	TextureType textureType = TEX_1;
 	Texture * texture = nullptr;
 	int  order = 0;          // NOTE(jesus): determines the drawing order
 

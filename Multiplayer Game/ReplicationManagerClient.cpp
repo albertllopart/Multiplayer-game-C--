@@ -36,6 +36,32 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 					packet >> newGO->color.b;
 					packet >> newGO->color.a;
 
+					packet >> newGO->textureType;
+
+					switch (newGO->textureType)
+					{
+						case TextureType::TEX_1:
+						{
+							newGO->texture = App->modResources->spacecraft1;
+							break;
+						}
+						case TextureType::TEX_2:
+						{
+							newGO->texture = App->modResources->spacecraft2;
+							break;
+						}
+						case TextureType::TEX_3:
+						{
+							newGO->texture = App->modResources->spacecraft3;
+							break;
+						}
+						case TextureType::TEX_LASER:
+						{
+							newGO->texture = App->modResources->laser;
+							break;
+						}
+					}
+
 					packet >> newGO->tag;
 
 					App->modLinkingContext->registerNetworkGameObjectWithNetworkId(newGO, networkId);
