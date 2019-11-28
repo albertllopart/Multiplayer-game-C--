@@ -70,6 +70,10 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 			break;
 
 		case ReplicationAction::Destroy:
+
+			packet << (*it)->networkId;
+			packet << (*it)->action;
+
 			break;
 
 		default:

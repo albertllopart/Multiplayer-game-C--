@@ -68,7 +68,10 @@ struct Laser : public Behaviour
 
 		secondsSinceCreation += Time.deltaTime;
 
-		NetworkUpdate(gameObject);
+		if (!App->modNetClient->isConnected())
+		{
+			NetworkUpdate(gameObject);
+		}
 
 		const float lifetimeSeconds = 2.0f;
 		if (secondsSinceCreation > lifetimeSeconds) NetworkDestroy(gameObject);
