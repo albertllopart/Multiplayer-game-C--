@@ -22,9 +22,6 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 
 	for (list<ReplicationCommand*>::iterator it = commands.begin(); it != commands.end(); ++it)
 	{
-		packet << (*it)->networkId;
-		packet << (*it)->action;
-
 		GameObject* go = App->modLinkingContext->getNetworkGameObject((*it)->networkId);
 
 		switch ((*it)->action)
@@ -35,6 +32,9 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 		case ReplicationAction::Create:
 			if (go)
 			{
+				packet << (*it)->networkId;
+				packet << (*it)->action;
+
 				packet << go->position.x;
 				packet << go->position.y;
 
@@ -62,6 +62,8 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 		case ReplicationAction::Update:
 			if (go)
 			{
+				packet << (*it)->networkId;
+				packet << (*it)->action;
 
 				packet << go->position.x;
 				packet << go->position.y;
