@@ -36,8 +36,26 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 					packet >> newGO->color.b;
 					packet >> newGO->color.a;
 
-					packet >> newGO->textureType;
+					packet >> newGO->colliderType;
 
+					switch (newGO->colliderType)
+					{
+						case ColliderType::Player:
+						{
+							newGO->collider = App->modCollision->addCollider(ColliderType::Player, newGO);
+							break;
+						}
+						case ColliderType::Laser:
+						{
+							newGO->collider = App->modCollision->addCollider(ColliderType::Laser, newGO);
+							break;
+						}
+						default:
+							break;
+					}
+
+					packet >> newGO->textureType;
+			
 					switch (newGO->textureType)
 					{
 						case TextureType::TEX_1:

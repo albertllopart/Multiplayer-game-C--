@@ -23,6 +23,7 @@ struct GameObject
 	int  order = 0;          // NOTE(jesus): determines the drawing order
 
 	// Collider component
+	ColliderType colliderType;
 	Collider *collider = nullptr;
 
 	// "Script" component
