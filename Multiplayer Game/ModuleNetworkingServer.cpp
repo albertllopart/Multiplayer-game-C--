@@ -139,7 +139,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 					GameObject *gameObject = networkGameObjects[i];
 
 					// TODO(jesus): Notify the new client proxy's replication manager about the creation of this game object
-					//proxy->replicationManager.Create(gameObject->networkId);
+					proxy->replicationManager.Create(gameObject->networkId);
 				}
 
 				LOG("Message received: hello - from player %s", playerName.c_str());
@@ -197,7 +197,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 			delivery_manager.processAckdSequenceNumbers(packet);
 		}
 
-		if (proxy != nullptr)
+		if (proxy != nullptr && message != ClientMessage::Ping)
 		{
 			proxy->lastPacketReceivedTime = Time.time;
 		}
@@ -401,7 +401,8 @@ GameObject * ModuleNetworkingServer::spawnPlayer(ClientProxy &clientProxy, uint8
 		if (clientProxies[i].connected)
 		{
 			// TODO(jesus): Notify this proxy's replication manager about the creation of this game object
-			clientProxies[i].replicationManager.Create(clientProxy.gameObject->networkId);
+			if (clientProxy.clientId != clientProxies[i].clientId)
+				clientProxies[i].replicationManager.Create(clientProxy.gameObject->networkId);
 		}
 	}
 
@@ -503,4 +504,21 @@ void ServerDeliveryDelegate::onDeliverySuccess(DeliveryManager* deliveryManager)
 void ServerDeliveryDelegate::onDeliveryFailure(DeliveryManager* deliveryManager)
 {
 	LOG("PACKET FAILURE");
+}
+
+void ModuleNetworkingServer::destroyAndDisconnectClient(GameObject* go)
+{
+	ClientProxy* proxy = new ClientProxy();
+
+	for (int i = 0; i < MAX_CLIENTS; i++)
+	{
+		if (clientProxies[i].gameObject == go)
+			proxy = &clientProxies[i];
+	}
+
+	if (proxy)
+	{
+		onConnectionReset(proxy->address);
+		//App->modNetClient->onConnectionReset(address);
+	}
 }

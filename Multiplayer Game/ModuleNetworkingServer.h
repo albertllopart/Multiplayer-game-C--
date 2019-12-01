@@ -12,7 +12,7 @@ public:
 
 	void setListenPort(int port);
 
-
+	void destroyAndDisconnectClient(GameObject* go);
 
 private:
 

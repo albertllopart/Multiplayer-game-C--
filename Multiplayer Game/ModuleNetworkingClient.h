@@ -14,7 +14,7 @@ public:
 
 	void setPlayerInfo(const char *playerName, uint8 spaceshipType);
 
-
+	void onConnectionReset(const sockaddr_in& fromAddress) override;
 
 private:
 
@@ -31,8 +31,6 @@ private:
 	void onPacketReceived(const InputMemoryStream &packet, const sockaddr_in &fromAddress) override;
 
 	void onUpdate() override;
-
-	void onConnectionReset(const sockaddr_in &fromAddress) override;
 
 	void onDisconnect() override;
 

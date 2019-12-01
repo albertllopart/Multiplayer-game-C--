@@ -130,7 +130,7 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 		// TODO(jesus): Handle incoming messages from server
 		if (message == ServerMessage::Replication)
 		{
-			if (delivery_manager.processSequenceNumber(packet))
+			//if (delivery_manager.processSequenceNumber(packet))
 			{
 				replicationManager.Read(packet);
 				//packet >> inputDataFront;
