@@ -208,8 +208,21 @@ void ModuleNetworkingServer::onUpdate()
 {
 	if (state == ServerState::Listening)
 	{
+		bool last_ping = false;
+		if (Time.time - secondsSinceLastPing > PING_INTERVAL_SECONDS)
+		{
+			last_ping = true;
+			secondsSinceLastPing = Time.time;
+		}
+
+		bool replication = false;
+		if (Time.time - replicationDeliveryIntervalSeconds > 0.1f)
+		{
+			replication = true;
+			replicationDeliveryIntervalSeconds = Time.time;
+		}
 		// Replication
-		for (ClientProxy &clientProxy : clientProxies)
+		for (ClientProxy& clientProxy : clientProxies)
 		{
 			if (clientProxy.connected)
 			{
@@ -229,45 +242,61 @@ void ModuleNetworkingServer::onUpdate()
 				}
 
 				//Disconnect for inactivity
-				if (Time.time - clientProxy.lastPacketReceivedTime > DISCONNECT_TIMEOUT_SECONDS)
+				if (Time.time - clientProxy.lastPacketReceivedTime > DISCONNECT_TIMEOUT_SECONDS) {
+					clientProxy.connected = false;
+					destroyNetworkObject(clientProxy.gameObject);
+				}
+
+				if (last_ping)
 				{
-					destroyClientProxy(&clientProxy);
+					OutputMemoryStream ping_packet;
+					ping_packet << ServerMessage::Ping;
+					sendPacket(ping_packet, clientProxy.address);
 				}
 
 				//Ping message to clients
-				if (secondsSinceLastPing > PING_INTERVAL_SECONDS)
+				if (replication)
 				{
-					OutputMemoryStream packet; 
-					packet << ServerMessage::Ping;
+					if (!clientProxy.replicationManager.commands.empty())
+					{
+						OutputMemoryStream packet;
+						packet << ServerMessage::Replication;
 
-					sendPacket(packet, clientProxy.address);
+						//Create the delivery sequence
+						Delivery* new_delivery = delivery_manager.writeSequenceNumber(packet);
+						new_delivery->delegate = new ServerDeliveryDelegate();
+
+						clientProxy.replicationManager.Write(packet);
+
+						sendPacket(packet, clientProxy.address);
+					}
 				}
 			}
-		}
 
-		//update timers
-		if (secondsSinceLastPing > PING_INTERVAL_SECONDS)
-		{
-			secondsSinceLastPing = 0.0f;
-		}
-		else
-		{
-			secondsSinceLastPing += Time.deltaTime;
-		}
+			//update timers
+			if (secondsSinceLastPing > PING_INTERVAL_SECONDS)
+			{
+				secondsSinceLastPing = 0.0f;
+			}
+			else
+			{
+				secondsSinceLastPing += Time.deltaTime;
+			}
 
-		if (replicationIntervalTimer > replicationDeliveryIntervalSeconds)
-		{
-			replicationIntervalTimer = 0.0f;
-		}
-		else
-		{
-			replicationIntervalTimer += Time.deltaTime;
-		}
+			if (replicationIntervalTimer > replicationDeliveryIntervalSeconds)
+			{
+				replicationIntervalTimer = 0.0f;
+			}
+			else
+			{
+				replicationIntervalTimer += Time.deltaTime;
+			}
 
+		}
 		delivery_manager.processTimedOutPackets();
+
 	}
 }
-
 void ModuleNetworkingServer::onConnectionReset(const sockaddr_in & fromAddress)
 {
 	// Find the client proxy

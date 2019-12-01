@@ -130,7 +130,7 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 		// TODO(jesus): Handle incoming messages from server
 		if (message == ServerMessage::Replication)
 		{
-			//if (delivery_manager.processSequenceNumber(packet))
+			if (delivery_manager.processSequenceNumber(packet))
 			{
 				replicationManager.Read(packet);
 				//packet >> inputDataFront;
@@ -177,13 +177,20 @@ void ModuleNetworkingClient::onUpdate()
 
 		if (inputDataBack - inputDataFront < ArrayCount(inputData))
 		{
-			uint32 currentInputData = inputDataBack++;
-			InputPacketData& inputPacketData = inputData[currentInputData % ArrayCount(inputData)];
-			inputPacketData.sequenceNumber = currentInputData;
-			inputPacketData.horizontalAxis = Input.horizontalAxis;
-			inputPacketData.verticalAxis = Input.verticalAxis;
-			inputPacketData.buttonBits = packInputControllerButtons(Input);
-
+			if (Input.horizontalAxis != 0.0f
+				|| Input.actionDown != ButtonState::Idle
+				|| Input.actionUp != ButtonState::Idle
+				|| Input.leftShoulder != ButtonState::Idle
+				|| Input.rightShoulder != ButtonState::Idle
+				|| Input.actionLeft != ButtonState::Idle)
+			{
+				uint32 currentInputData = inputDataBack++;
+				InputPacketData& inputPacketData = inputData[currentInputData % ArrayCount(inputData)];
+				inputPacketData.sequenceNumber = currentInputData;
+				inputPacketData.horizontalAxis = Input.horizontalAxis;
+				inputPacketData.verticalAxis = Input.verticalAxis;
+				inputPacketData.buttonBits = packInputControllerButtons(Input);
+			}
 			// Create packet (if there's input and the input delivery interval exceeded)
 			if (secondsSinceLastInputDelivery > inputDeliveryIntervalSeconds)
 			{
@@ -203,11 +210,13 @@ void ModuleNetworkingClient::onUpdate()
 
 				sendPacket(packet, serverAddress);
 			}
-
 			//Disconnect for inactivity
-			if (Time.time - lastPacketReceivedTime > DISCONNECT_TIMEOUT_SECONDS)
+			if (delivery_manager.hasSequenceNumberPendingAck())
 			{
-				disconnect();
+				OutputMemoryStream packet;
+				packet << ClientMessage::Delivery;
+				delivery_manager.writeSequenceNumbersPendingAck(packet);
+				sendPacket(packet, serverAddress);
 			}
 
 			//Ping message to clients
@@ -218,25 +227,21 @@ void ModuleNetworkingClient::onUpdate()
 
 				sendPacket(packet, serverAddress);
 
-				secondsSinceLastPing = 0;
+				secondsSinceLastPing = Time.time;
+			}
+			if (Time.time - lastPacketReceivedTime > DISCONNECT_TIMEOUT_SECONDS) {
+				disconnect();
 			}
 		}
-
 	}
-
+	
 	// Make the camera focus the player game object
 	GameObject *playerGameObject = App->modLinkingContext->getNetworkGameObject(networkId);
 	if (playerGameObject != nullptr)
 	{
 		App->modRender->cameraPosition = playerGameObject->position;
 	}
-	if (delivery_manager.hasSequenceNumberPendingAck())
-	{
-		OutputMemoryStream packet;
-		packet << ClientMessage::Delivery;
-		delivery_manager.writeSequenceNumbersPendingAck(packet);
-		sendPacket(packet, serverAddress);
-	}
+
 }
 
 void ModuleNetworkingClient::onConnectionReset(const sockaddr_in & fromAddress)

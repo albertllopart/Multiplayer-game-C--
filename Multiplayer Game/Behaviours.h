@@ -22,23 +22,44 @@ struct Spaceship : public Behaviour
 
 	void onInput(const InputController &input) override
 	{
+		const float rotateSpeed = 50.0f;
+		const float advanceSpeed = 200.0f;
+
 		if (input.horizontalAxis != 0.0f)
 		{
-			const float rotateSpeed = 180.0f;
 			gameObject->angle += input.horizontalAxis * rotateSpeed * Time.deltaTime;
-			NetworkUpdate(gameObject);
+			if (!App->modNetClient->isConnected()) {
+				NetworkUpdate(gameObject);
+			}
 		}
 
-		if (input.actionDown == ButtonState::Pressed)
+		if (input.actionDown == ButtonState::Pressed || input.verticalAxis < 0.0f)
 		{
-			const float advanceSpeed = 200.0f;
 			gameObject->position += vec2FromDegrees(gameObject->angle) * advanceSpeed * Time.deltaTime;
-			NetworkUpdate(gameObject);
+			if (!App->modNetClient->isConnected())
+				NetworkUpdate(gameObject);
+		}
+		if (input.actionUp == ButtonState::Pressed || input.verticalAxis > 0.0f)
+		{
+			gameObject->position -= vec2FromDegrees(gameObject->angle) * advanceSpeed * Time.deltaTime;
+			if (!App->modNetClient->isConnected())
+				NetworkUpdate(gameObject);
+		}
+
+		if (input.leftShoulder == ButtonState::Pressed) {
+			gameObject->position += vec2FromDegrees(gameObject->angle - 90.0f) * advanceSpeed * Time.deltaTime;
+			if (!App->modNetClient->isConnected())
+				NetworkUpdate(gameObject);
+		}
+		if (input.rightShoulder == ButtonState::Pressed) {
+			gameObject->position += vec2FromDegrees(gameObject->angle + 90.0f) * advanceSpeed * Time.deltaTime;
+			if (!App->modNetClient->isConnected())
+				NetworkUpdate(gameObject);
 		}
 
 		if (input.actionLeft == ButtonState::Press)
 		{
-			GameObject * laser = App->modNetServer->spawnBullet(gameObject);
+			GameObject* laser = App->modNetServer->spawnBullet(gameObject);
 			laser->tag = gameObject->tag;
 		}
 	}
