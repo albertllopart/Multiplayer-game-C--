@@ -36,6 +36,8 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 					packet >> newGO->color.b;
 					packet >> newGO->color.a;
 
+
+
 					packet >> newGO->colliderType;
 
 					switch (newGO->colliderType)

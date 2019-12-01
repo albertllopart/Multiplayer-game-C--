@@ -130,8 +130,23 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 		// TODO(jesus): Handle incoming messages from server
 		if (message == ServerMessage::Replication)
 		{
-			replicationManager.Read(packet);
-			packet >> inputDataFront;
+			if (delivery_manager.processSequenceNumber(packet))
+			{
+				replicationManager.Read(packet);
+				//packet >> inputDataFront;
+			}
+		}
+		if (message == ServerMessage::Input)
+		{
+			//Remove the processed inputs
+			uint32 last_processed_input_data = 0;
+			packet >> last_processed_input_data;
+
+			inputDataFront = last_processed_input_data;
+		}
+		if (message == ServerMessage::Disconnect)
+		{
+			disconnect();
 		}
 	}
 }
@@ -163,7 +178,7 @@ void ModuleNetworkingClient::onUpdate()
 		if (inputDataBack - inputDataFront < ArrayCount(inputData))
 		{
 			uint32 currentInputData = inputDataBack++;
-			InputPacketData &inputPacketData = inputData[currentInputData % ArrayCount(inputData)];
+			InputPacketData& inputPacketData = inputData[currentInputData % ArrayCount(inputData)];
 			inputPacketData.sequenceNumber = currentInputData;
 			inputPacketData.horizontalAxis = Input.horizontalAxis;
 			inputPacketData.verticalAxis = Input.verticalAxis;
@@ -179,15 +194,12 @@ void ModuleNetworkingClient::onUpdate()
 
 				for (uint32 i = inputDataFront; i < inputDataBack; ++i)
 				{
-					InputPacketData &inputPacketData = inputData[i % ArrayCount(inputData)];
+					InputPacketData& inputPacketData = inputData[i % ArrayCount(inputData)];
 					packet << inputPacketData.sequenceNumber;
 					packet << inputPacketData.horizontalAxis;
 					packet << inputPacketData.verticalAxis;
 					packet << inputPacketData.buttonBits;
 				}
-
-				// Clear the queue
-				inputDataFront = inputDataBack;
 
 				sendPacket(packet, serverAddress);
 			}
@@ -209,6 +221,7 @@ void ModuleNetworkingClient::onUpdate()
 				secondsSinceLastPing = 0;
 			}
 		}
+
 	}
 
 	// Make the camera focus the player game object
@@ -216,6 +229,13 @@ void ModuleNetworkingClient::onUpdate()
 	if (playerGameObject != nullptr)
 	{
 		App->modRender->cameraPosition = playerGameObject->position;
+	}
+	if (delivery_manager.hasSequenceNumberPendingAck())
+	{
+		OutputMemoryStream packet;
+		packet << ClientMessage::Delivery;
+		delivery_manager.writeSequenceNumbersPendingAck(packet);
+		sendPacket(packet, serverAddress);
 	}
 }
 

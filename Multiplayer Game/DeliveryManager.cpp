@@ -1,6 +1,4 @@
 #include "Networks.h"
-
-#include "Networks.h"
 #include "DeliveryManager.h"
 
 Delivery* DeliveryManager::writeSequenceNumber(OutputMemoryStream& packet)

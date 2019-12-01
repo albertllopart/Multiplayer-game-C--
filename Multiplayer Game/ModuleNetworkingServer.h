@@ -40,6 +40,8 @@ private:
 	// Client proxies
 	//////////////////////////////////////////////////////////////////////
 
+	DeliveryManager delivery_manager;
+
 	uint32 nextClientId = 0;
 
 	struct ClientProxy
@@ -127,3 +129,11 @@ void NetworkUpdate(GameObject *gameObject);
 // sure to notify the destruction of the object to all connected
 // machines.
 void NetworkDestroy(GameObject *gameObject);
+
+class ServerDeliveryDelegate : public DeliveryDelegate {
+public:
+
+	void onDeliverySuccess(DeliveryManager* deliveryManager) override;
+	void onDeliveryFailure(DeliveryManager* deliveryManager) override;
+
+};

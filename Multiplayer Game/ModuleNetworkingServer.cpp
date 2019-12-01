@@ -1,5 +1,6 @@
 #include "Networks.h"
 #include "ModuleNetworkingServer.h"
+#include "DeliveryManager.h"
 
 
 
@@ -159,6 +160,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 			// Process the input packet and update the corresponding game object
 			if (proxy != nullptr)
 			{
+				int last_processed_input_data = -1;
 				// Read input data
 				while (packet.RemainingByteCount() > 0)
 				{
@@ -175,9 +177,24 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 						unpackInputControllerButtons(inputData.buttonBits, proxy->gamepad);
 						proxy->gameObject->behaviour->onInput(proxy->gamepad);
 						proxy->nextExpectedInputSequenceNumber = inputData.sequenceNumber + 1;
+						last_processed_input_data = inputData.sequenceNumber;
 					}
 				}
+
+				if (last_processed_input_data > -1)
+				{
+					uint32 last_input = last_processed_input_data;
+					//Send packet with the last processed input
+					OutputMemoryStream processedInputPacket;
+					processedInputPacket << ServerMessage::Input;
+					processedInputPacket << last_input;
+					sendPacket(processedInputPacket, fromAddress);
+				}
 			}
+		}
+
+		else if (message == ClientMessage::Delivery) {
+			delivery_manager.processAckdSequenceNumbers(packet);
 		}
 
 		if (proxy != nullptr)
@@ -246,6 +263,8 @@ void ModuleNetworkingServer::onUpdate()
 		{
 			replicationIntervalTimer += Time.deltaTime;
 		}
+
+		delivery_manager.processTimedOutPackets();
 	}
 }
 
@@ -474,4 +493,14 @@ void NetworkDestroy(GameObject * gameObject)
 	ASSERT(App->modNetServer->isConnected());
 
 	App->modNetServer->destroyNetworkObject(gameObject);
+}
+
+void ServerDeliveryDelegate::onDeliverySuccess(DeliveryManager* deliveryManager)
+{
+	LOG("PACKET SUCCESS");
+}
+
+void ServerDeliveryDelegate::onDeliveryFailure(DeliveryManager* deliveryManager)
+{
+	LOG("PACKET FAILURE");
 }

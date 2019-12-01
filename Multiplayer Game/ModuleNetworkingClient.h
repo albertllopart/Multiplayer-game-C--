@@ -50,6 +50,8 @@ private:
 		Playing
 	};
 
+	DeliveryManager delivery_manager;
+
 	ClientState state = ClientState::Stopped;
 
 	std::string serverAddressStr;
